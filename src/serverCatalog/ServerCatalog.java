@@ -4,9 +4,9 @@ import intefaces.ICatalog;
 import protocol2pc.Coordinator;
 import protocol2pc.Participant;
 import protocol2pc.Transaction;
+import server.Resource;
 import server.Server;
 import server.ServerReference;
-import serverUsers.ServerUser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,12 +20,12 @@ import java.util.Scanner;
 
 public class ServerCatalog extends Server implements ICatalog {
 
-    private Map<String, Product> resources;
+
 
 
 
     @Override
-    public Map<String, Product> getCatalog() throws RemoteException {
+    public Map<String, Resource> getCatalog() throws RemoteException {
         return this.resources;
     }
 
@@ -79,8 +79,6 @@ public class ServerCatalog extends Server implements ICatalog {
 
     public ServerCatalog(ServerReference coordinator, ServerReference participant, ServerReference server, Registry registry) throws RemoteException {
         super(coordinator, participant, server, registry);
-        this.resources = new HashMap<>();
-        // TODO - error in rources
     }
 
     private static void addProductsFromFile(ServerCatalog server ) {

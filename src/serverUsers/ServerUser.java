@@ -4,9 +4,9 @@ import intefaces.IUsers;
 import protocol2pc.Coordinator;
 import protocol2pc.Participant;
 import protocol2pc.Transaction;
+import server.Resource;
 import server.Server;
 import server.ServerReference;
-import serverCatalog.Product;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,13 +14,12 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class ServerUser extends Server implements IUsers {
 
-    private Map<String, User> resources;
+
 
     public static void main(String[] args) throws RemoteException {
         int port = Integer.valueOf(args[0]);
@@ -56,7 +55,7 @@ public class ServerUser extends Server implements IUsers {
 
     public ServerUser(ServerReference coordinator, ServerReference participant, ServerReference server, Registry registry) throws RemoteException {
         super(coordinator, participant, server, registry);
-        this.resources = new HashMap<>();
+
         // TODO - error in rources
     }
 
@@ -83,17 +82,34 @@ public class ServerUser extends Server implements IUsers {
     }
 
     @Override
-    public Map<String, User> getUsers() throws RemoteException {
+    public Map<String, Resource> getUsers() throws RemoteException {
         return this.resources;
     }
 
     @Override
     public User login(String id, String password) throws RemoteException {
-        if( !this.resources.containsKey(id) || !this.resources.get(id).login(password) )
+        System.out.println("Login " + id);
+        System.out.println("Password: "+  password);
+        System.out.println(this.resources.containsKey(id));
+        User user = (User) this.resources.get(id);
+        if( !this.resources.containsKey(id) || !user.login(password) )
         {
             return null;
         }
-        return this.resources.get(id);
+        return (User) this.resources.get(id);
+    }
+
+    @Override
+    public User changePassword(String id, String password) throws RemoteException {
+        System.out.println("Change password: " + id);
+
+        User user = (User) this.resources.get(id);
+        if( !this.resources.containsKey(id) )
+        {
+            return null;
+        }
+        user.setPassword(password);
+        return user;
     }
 
     @Override

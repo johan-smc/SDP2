@@ -3,9 +3,10 @@ package server;
 import protocol2pc.Operation;
 import protocol2pc.Transaction;
 
+import java.io.Serializable;
 import java.util.*;
 
-public abstract class Resource {
+public abstract class Resource implements Serializable {
 
     private Map<String, Transaction> transactions;
     private Set<String> activeTransactions;

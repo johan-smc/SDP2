@@ -15,6 +15,7 @@ public class User extends Resource {
     }
 
     boolean login(String password){
+        System.out.println(".. " + this.password + " " + password);
         return this.password.equals(password);
     }
 
@@ -22,10 +23,18 @@ public class User extends Resource {
         super(id);
         if( password.equals("-") )
         {
-            password = null;
+            password = "";
         }
         this.password = password;
         this.balance = balance;
         this.isAdmin = isAdmin;
+    }
+    public boolean isEmptyPassword()
+    {
+        return this.password.equals("");
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
