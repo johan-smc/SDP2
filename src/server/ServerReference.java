@@ -28,4 +28,10 @@ public class ServerReference {
     public void setServerNameRMI(String serverNameRMI) {
         this.serverNameRMI = serverNameRMI;
     }
+
+    public ServerReference(String ip, int port, String serverNameRMI) {
+        this.ip = ip;
+        this.port = port;
+        this.serverNameRMI = serverNameRMI;
+    }
 }

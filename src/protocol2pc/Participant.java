@@ -21,6 +21,10 @@ public class Participant implements IParticipant {
     private ServerReference myServer;
     private Map<String, ICoordinator> transactionsReferences;
 
+    public ServerReference getMyServer() {
+        return myServer;
+    }
+
     public Participant(Map<String, Resource> resources, ServerReference myServer){
         this.resources = resources;
         this.myServer = myServer;

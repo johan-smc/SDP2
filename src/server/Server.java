@@ -3,12 +3,14 @@ package server;
 import protocol2pc.Coordinator;
 import protocol2pc.Participant;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Server {
+public class Server extends UnicastRemoteObject {
     protected Coordinator coordinator;
     protected Participant participant;
     protected Map<String, Resource> resources;
@@ -25,20 +27,21 @@ public class Server {
 
     protected String fileName = "server.txt";
 
-    protected  Server(ServerReference coordinator, ServerReference participant, ServerReference serverReference){
+    protected  Server(ServerReference coordinator, ServerReference participant, ServerReference serverReference, Registry registry) throws RemoteException {
+        super();
         this.resources = new HashMap<>();
         try{
 
-            Registry registry = LocateRegistry.createRegistry(coordinator.getPort());
+
             this.coordinator= new Coordinator(coordinator);
             registry.bind(Coordinator.NAME_SERVICE, this.coordinator);
             System.err.println("Coordinator ready");
 
 
-            registry = LocateRegistry.createRegistry(participant.getPort());
+            // registry = LocateRegistry.createRegistry(participant.getPort());
             this.participant= new Participant(this.resources, participant);
             registry.bind(Participant.NAME_SERVICE, this.participant);
-            System.err.println("Coordinator ready");
+            System.err.println("Participant ready");
 
 
             this.myServer = serverReference;
