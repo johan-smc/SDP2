@@ -4,6 +4,7 @@ import intefaces.ICoordinator;
 import intefaces.IParticipant;
 import server.Resource;
 import server.ServerReference;
+import serverCatalog.Product;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -55,11 +56,27 @@ public class Participant extends UnicastRemoteObject implements IParticipant  {
              resourceSet) {
             if( !this.resources.get(rId).canCommit(transaction.getId()) )
             {
-                this.doAbort(transaction);
-                return false;
+                if( transaction.getTypeTransaction().equals(Transaction.TYPE_TRANSACTION.PURCHASE) )
+                {
+                    //removeOperationResources(transaction, rId);
+                }else{
+                    this.doAbort(transaction);
+                    return false;
+                }
+
             }
         }
         return true;
+    }
+
+    private void removeOperationResources(Transaction transaction, String rId) {
+        for ( Operation operation:
+                transaction.getOperations()) {
+            if( operation.getResource().equals(rId) )
+            {
+                transaction.getOperations().remove(operation);
+            }
+        }
     }
 
     @Override
@@ -121,5 +138,23 @@ public class Participant extends UnicastRemoteObject implements IParticipant  {
         }
 
         return true;
+    }
+
+    @Override
+    public double getBalance(Transaction transaction) throws RemoteException {
+        double total =0;
+        for ( Operation operation:
+                transaction.getOperations())
+            if (operation.getServer().equals(myServer)) {
+                Product p = (Product) this.resources.get(operation.getResource());
+                System.out.println(p.getTotal()+ " ---- "+operation.getValue());
+                int cant = ((int)operation.getValue())*-1;
+                if( p.getTotal() >=  cant) {
+                    total += ((int) operation.getValue()) * p.getCost();
+                }
+
+            }
+        System.out.println("balance is: " + total);
+        return total;
     }
 }

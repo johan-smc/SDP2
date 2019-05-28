@@ -50,6 +50,7 @@ public abstract class Resource implements Serializable {
             this.activeTransactions.add(transactionId);
             return true;
         }
+
         return false;
     }
 

@@ -12,5 +12,6 @@ public interface IParticipant extends Remote {
     void doCommit(Transaction transaction) throws RemoteException;
     void doAbort(Transaction transaction) throws RemoteException;
     boolean join(Transaction transaction, ServerReference server) throws RemoteException;
+    double getBalance(Transaction transaction) throws RemoteException;
 
 }

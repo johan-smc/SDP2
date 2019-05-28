@@ -127,7 +127,7 @@ public class Test {
             System.out.println("primero login");
             return ;
         }
-        Transaction transaction = new Transaction();
+        Transaction transaction = new Transaction(Transaction.TYPE_TRANSACTION.PURCHASE);
         try {
             double total = 0;
             Map<String, Resource> ans = serverCatalog.getCatalog();

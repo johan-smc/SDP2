@@ -23,6 +23,10 @@ public class Transaction implements Serializable {
         this.typeTransaction = TYPE_TRANSACTION.NORMAL;
 
     }
+    public Transaction(TYPE_TRANSACTION typeTransaction){
+        this();
+        this.typeTransaction = typeTransaction;
+    }
     public Transaction(String transactionId){
         this();
         id = transactionId;

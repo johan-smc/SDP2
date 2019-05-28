@@ -2,7 +2,6 @@ package protocol2pc;
 
 import intefaces.ICoordinator;
 import intefaces.IParticipant;
-import server.Server;
 import server.ServerReference;
 
 import java.rmi.NotBoundException;
@@ -79,9 +78,18 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
         boolean commit = true;
         boolean isPurchase = transaction.getTypeTransaction().equals(Transaction.TYPE_TRANSACTION.PURCHASE);
         Operation balanceTemporal = null;
+
         if( isPurchase ) {
-            balanceTemporal = removeBalance(transaction);
-            verifyBalance(balanceTemporal);
+            balanceTemporal = getBalance(transaction);
+            if( !verifyBalance(balanceTemporal, transaction) )
+            {
+                this.doAbort(transaction);
+                System.out.println("The decision is: " +false);
+                return;
+            }
+
+            removeBalance(transaction);
+
 
         }
 
@@ -104,17 +112,14 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
                 break;
             }
             entry.setValue(answer);
-            if( !answer  )
-            {
-                removeServerReference(transaction, entry.getKey());
-            }
+
         }
         if( isPurchase )
         {
             boolean answer = true;
-            balanceTemporal = updateBalance(balanceTemporal, transaction);
+            updateBalance(balanceTemporal, transaction);
             try {
-                System.out.println("Enviando a " + this.participants.get(balanceTemporal.getServer()));
+                System.out.println("Enviando a ---- " + this.participants.get(balanceTemporal.getServer()));
                 answer = this.participants.get(balanceTemporal.getServer()).canCommit(transaction);
                 System.out.println("Answer: "+ answer);
             } catch (RemoteException e) {
@@ -135,29 +140,43 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
 
     }
 
+    private Operation getBalance(Transaction transaction) {
+        int pos = transaction.getOperations().size()-1;
+        return transaction.getOperations().get(pos);
+    }
+
     private Operation updateBalance(Operation balanceTemporal, Transaction transaction) {
-        // TODO
-        return null;
-    }
-
-    private Operation removeBalance(Transaction transaction) {
-        // TODO
-        return null;
-    }
-
-    private void verifyBalance(Operation transaction) {
-        // TODO
-    }
-
-    private void removeServerReference(Transaction transaction, ServerReference key) {
-        for (Operation o: transaction.getOperations()
-             ) {
-            if( o.getServer().equals(key) )
-            {
-                transactions.remove(o);
-            }
+        ServerReference serverCatalog = transaction.getOperations().get(0).getServer();
+        try {
+            balanceTemporal.setValue(this.participants.get(serverCatalog).getBalance(transaction));
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
+        System.out.println(balanceTemporal.getValue());
+        transaction.getOperations().add(balanceTemporal);
+        this.transactionParticipants.get(transaction.getId()).put(balanceTemporal.getServer(), null);
+        System.out.println("Update complete");
+        return balanceTemporal;
     }
+
+    private void removeBalance(Transaction transaction) {
+        int pos = transaction.getOperations().size()-1;
+        transaction.getOperations().remove(pos);
+
+
+    }
+
+    private boolean verifyBalance(Operation transaction, Transaction transaction1) {
+        boolean ans = false;
+        try {
+            ans = this.participants.get(transaction.getServer()).canCommit(transaction1);
+            this.participants.get(transaction.getServer()).doAbort(transaction1);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return ans;
+    }
+
 
     private void doAbort(Transaction transaction) {
 
@@ -183,6 +202,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
 
         System.out.println("Do Commit");
         Map<ServerReference, Boolean> server = this.transactionParticipants.get(transaction.getId());
+        System.out.println("inform to " + server.size() +" servers");
 
         Set<ServerReference> copy = new TreeSet<>(server.keySet());
         for (ServerReference reference:copy ) {
