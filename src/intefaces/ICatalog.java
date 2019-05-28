@@ -13,5 +13,5 @@ public interface ICatalog extends Remote {
     String openTransaction(Transaction transaction) throws RemoteException;
 
     ServerReference getReference() throws RemoteException;
-    Transaction.DECISION getDecision(Transaction transaction) throws RemoteException;
+    Transaction.DECISION getDecision(String transaction) throws RemoteException;
 }

@@ -17,6 +17,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
 
     private static int consecutive = 0;
     private Map<String, Transaction> transactions;
+    private Map<String, Transaction.DECISION> transactionDecision;
     private Map<String, Map<ServerReference, Boolean> > transactionParticipants;
     private Map<ServerReference, IParticipant> participants;
     private ServerReference myServer;
@@ -29,6 +30,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
         this.transactions = new HashMap<>();
         this.participants = new TreeMap<>();
         this.myServer = myServer;
+        this.transactionDecision = new HashMap<>();
     }
 
     @Override
@@ -40,16 +42,17 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
     }
 
     @Override
-    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
-        if( !this.transactions.containsKey(transaction.getId()) )
+    public Transaction.DECISION getDecision(String transaction) throws RemoteException {
+        if( !this.transactionDecision.containsKey(transaction) )
         {
             return Transaction.DECISION.NOT_EXIST;
         }
-        return this.transactions.get(transaction.getId()).getDesition();
+        return this.transactionDecision.get(transaction);
     }
 
     @Override
     public String openTransaction(Transaction transaction) throws RemoteException {
+        this.transactionDecision.put(transaction.getId(), Transaction.DECISION.IN_PROGRESS);
         transaction.setId(this.myServer.getIp()+"-"+getConsecutive());
         joinAllParticipants(transaction);
         System.out.println("Join complete");
@@ -195,7 +198,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
                 e.printStackTrace();
             }
         }
-        transaction.setDesition(Transaction.DECISION.ABORT);
+        this.transactionDecision.put(transaction.getId(), Transaction.DECISION.ABORT);
     }
     private void doCommit(Transaction transaction) {
         // TODO maybe has error the code
@@ -218,7 +221,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
                 e.printStackTrace();
             }
         }
-        transaction.setDesition(Transaction.DECISION.COMMIT);
+        this.transactionDecision.put(transaction.getId(), Transaction.DECISION.COMMIT);
         System.out.println("Terminate Commit");
 
     }

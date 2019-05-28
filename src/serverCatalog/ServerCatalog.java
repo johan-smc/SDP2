@@ -16,7 +16,6 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -42,7 +41,7 @@ public class ServerCatalog extends Server implements ICatalog {
     }
 
     @Override
-    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
+    public Transaction.DECISION getDecision(String transaction) throws RemoteException {
         return this.coordinator.getDecision(transaction);
     }
 

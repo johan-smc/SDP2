@@ -2,10 +2,15 @@ package controllers;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
 
 import javax.swing.JOptionPane;
 
@@ -16,7 +21,12 @@ import server.Server;
 import serverUsers.User;
 
 public class LoginController implements ActionListener{
-	
+
+	public static final String ipUsers = "localhost";
+	public static final int portUsers = 9999;
+
+	public static final String ipProducts = "localhost";
+	public  static final int portProducts = 8888;
 	private LoginView loginView;
 	private User user;
 	private IUsers serverUsers;
@@ -57,7 +67,7 @@ public class LoginController implements ActionListener{
 	private  void conectToServers() {
 		Registry registry = null;
 		try {
-			registry = LocateRegistry.getRegistry("localhost", 9999);
+			registry = LocateRegistry.getRegistry(this.ipUsers, this.portUsers);
 			this.serverUsers = (IUsers) registry.lookup(Server.NAME_SERVICE);
 		} catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();
@@ -76,19 +86,23 @@ public class LoginController implements ActionListener{
 	}
 	
 	private String getHash(String password) {
-		return password;
-		/*if( password.equals("") )
+
+		password = password.trim();
+		if( password.equals("") )
 		{
 			return password;
 		}
+		//return Integer.toString(password.hashCode());
+
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
-			return digest.digest(password.getBytes(StandardCharsets.UTF_8)).toString();
+			return Base64.getEncoder().encodeToString(digest.digest(password.getBytes(StandardCharsets.UTF_8)));
+
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		return null;*/
+		return null;
 	}
 
 }

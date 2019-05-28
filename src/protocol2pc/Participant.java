@@ -56,7 +56,8 @@ public class Participant extends UnicastRemoteObject implements IParticipant  {
              resourceSet) {
             if( !this.resources.get(rId).canCommit(transaction.getId()) )
             {
-                if( transaction.getTypeTransaction().equals(Transaction.TYPE_TRANSACTION.PURCHASE) )
+                if( transaction.getTypeTransaction().equals(Transaction.TYPE_TRANSACTION.PURCHASE)
+                && this.resources.get(rId) instanceof Product)
                 {
                     //removeOperationResources(transaction, rId);
                 }else{

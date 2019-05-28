@@ -8,8 +8,7 @@ import server.Resource;
 import server.Server;
 import server.ServerReference;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
@@ -89,6 +88,23 @@ public class ServerUser extends Server implements IUsers {
         }
 
     }
+    private  void saveUsers() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(this.getFileName()));
+            for (Map.Entry<String, Resource> entry: this.resources.entrySet()) {
+                User u = (User) entry.getValue();
+                writer.write(u.getStringToSave() + '\n');
+            }
+            writer.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("[ERROR] Archivo: "+ e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     @Override
     public Map<String, Resource> getUsers() throws RemoteException {
@@ -118,6 +134,7 @@ public class ServerUser extends Server implements IUsers {
             return null;
         }
         user.setPassword(password);
+        this.saveUsers();
         return user;
     }
 
@@ -132,7 +149,7 @@ public class ServerUser extends Server implements IUsers {
     }
 
     @Override
-    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
+    public Transaction.DECISION getDecision(String transaction) throws RemoteException {
         return this.coordinator.getDecision(transaction);
     }
 }

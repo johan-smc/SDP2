@@ -61,6 +61,12 @@ public class User extends Resource {
         return "id: "+ this.id+ " password: " + this.password + " balance: " +this.balance + " isAdmin: " + this.isAdmin ;
     }
 
+    public String getStringToSave() {
+        String tempPass = password;
+        if(tempPass == "") tempPass = "-";
+        return (id + " " + tempPass + " " + balance + " " + isAdmin);
+    }
+
     @Override
     protected boolean validate(Transaction transaction) {
         double temporalBalance = balance;

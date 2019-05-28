@@ -6,10 +6,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -17,6 +14,8 @@ import javax.swing.table.TableModel;
 import client.GUICliente;
 import intefaces.ICatalog;
 import intefaces.IUsers;
+import protocol2pc.Operation;
+import protocol2pc.Transaction;
 import server.Resource;
 import server.Server;
 import serverCatalog.Product;
@@ -28,11 +27,13 @@ public class ClienteController implements ActionListener{
 	private ICatalog serverCatalog;
 	private IUsers serverUser;
 	private User user;
+	private Set<String> transactionsIds;
 	
 	public ClienteController(GUICliente clientGui, User user) {
 		this.conectToServers();
 		this.user = user;
 		this.clientGui = clientGui;
+		this.transactionsIds = new HashSet<>();
 	}
 	
 	@Override
@@ -47,29 +48,117 @@ public class ClienteController implements ActionListener{
 		if(e.getSource() == this.clientGui.getBtnActualizarLogs()) {
 			this.actualizarLogs();
 		}
+		if( e.getSource() == this.clientGui.getBtnCommit()){
+			this.agegarACuenta();
+		}
 		
 	}
-	
+
+	private void agegarACuenta() {
+		Transaction transaction = new Transaction();
+		TableModel model = this.clientGui.getTableUser().getModel();
+		User[] newUsers = new User[model.getRowCount()];
+		for(int i = 0; i < model.getRowCount(); ++i) {
+			String username =(String) model.getValueAt(i, 0);
+			String pass = (String) model.getValueAt(i, 1);
+			Boolean isAdmin = Boolean.parseBoolean((String) model.getValueAt(i, 3));
+			Double acutal = Double.parseDouble((String) model.getValueAt(i, 2));
+			Double toAdd = Double.parseDouble((String) model.getValueAt(i, 4));
+			User temp = new User(username, pass, acutal + toAdd, isAdmin);
+			newUsers[i] = temp;
+			if( toAdd != 0.0 ){
+				try {
+					transaction.putOperation(new Operation(Operation.TYPE.WRITE, toAdd, newUsers[i].getId(), serverUser.getReference()));
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		try {
+			this.transactionsIds.add(
+					this.serverCatalog.openTransaction(transaction)
+			);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	private void actualizarLogs() {
-		String newStr = "Some NEw";
+		this.populateTable();
+		this.populateUserTable();
+		this.setAccountBalance();
+		String newStr = "";
+		for (String id:
+			 this.transactionsIds) {
+			newStr += id + " ";
+			try {
+				newStr += this.serverCatalog.getDecision(id);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+			newStr += "\n";
+		}
 		String oldLogs = this.clientGui.getTxtLogs().getText();
-		this.clientGui.getTxtLogs().setText(oldLogs + '\n' + newStr);
+		this.clientGui.getTxtLogs().setText(newStr);
+
 	}
 	
 	private void actualizarInventario() {
-		//Transaction transaction = new Transaction();
+		Transaction transaction = new Transaction();
 		Product[] prods = this.getShoppingCarContent(this.clientGui.getTableProducts().getModel());
 		for(int i = 0; i < this.clientGui.getTableProducts().getModel().getRowCount(); ++i) {
-			int toAdd = Integer.parseInt((String) this.clientGui.getTableProducts().getModel().getValueAt(i, 2));
+			int toAdd = Integer.parseInt((String) this.clientGui.getTableProducts().getModel().getValueAt(i, 3));
 			prods[i].setTotal(toAdd);
-			//transaction.putOperation(new Operation(Operation.TYPE.WRITE, 4, prods[i].getId(), serverCatalog.getRe));
+			try {
+				if( toAdd != 0) {
+					transaction.putOperation(new Operation(Operation.TYPE.WRITE, toAdd, prods[i].getId(), serverCatalog.getReference()));
+				}
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}
-		this.populateTable(new ArrayList<Product>(Arrays.asList(prods)));
+		try {
+			this.transactionsIds.add(
+					this.serverCatalog.openTransaction(transaction)
+			);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		//this.populateTable(new ArrayList<Product>(Arrays.asList(prods)));
 	}
 	
 	private void enviarCompra() {		
 		Product[] prods = this.getShoppingCarContent(this.clientGui.getTableProducts().getModel());
-		for(int i = 0; i < prods.length; ++i) System.out.println(prods[i]);
+		//for(int i = 0; i < prods.length; ++i) System.out.println(prods[i]);
+		Transaction transaction = new Transaction(Transaction.TYPE_TRANSACTION.PURCHASE);
+		double total = 0;
+		for(int i = 0; i < this.clientGui.getTableProducts().getModel().getRowCount(); ++i) {
+			int toAdd = Integer.parseInt((String) this.clientGui.getTableProducts().getModel().getValueAt(i, 3));
+			prods[i].setTotal(toAdd);
+			try {
+
+				if( toAdd != 0) {
+
+					transaction.putOperation(new Operation(Operation.TYPE.WRITE, -toAdd, prods[i].getId(), serverCatalog.getReference()));
+					total += prods[i].getCost() * toAdd;
+				}
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			transaction.putOperation(new Operation(Operation.TYPE.WRITE, -total, user.getId(), serverUser.getReference()));
+			this.transactionsIds.add(
+					this.serverCatalog.openTransaction(transaction)
+			);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		//this.populateTable(new ArrayList<Product>(Arrays.asList(prods)));
 	}
 	
 	public void setAccountBalance() {
@@ -128,9 +217,9 @@ public class ClienteController implements ActionListener{
 		Registry registry = null;
 
 		try {
-			registry = LocateRegistry.getRegistry("localhost", 8888);
+			registry = LocateRegistry.getRegistry(LoginController.ipProducts, LoginController.portProducts);
 			this.serverCatalog = (ICatalog) registry.lookup(Server.NAME_SERVICE);
-			registry = LocateRegistry.getRegistry("localhost", 9999);
+			registry = LocateRegistry.getRegistry(LoginController.ipUsers, LoginController.portUsers);
 			this.serverUser = (IUsers) registry.lookup(Server.NAME_SERVICE);
 		} catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();
@@ -152,7 +241,7 @@ public class ClienteController implements ActionListener{
 	public void populateUserTable() {
 		if(this.user.isAdmin()) {
 			ArrayList<User> users = this.getUsersFromServer();
-			String columnNames[] = { "Usuario", "Contraseña","¿Es Admin?", "Balance", "Abono" };
+			String columnNames[] = { "Usuario", "Contraseña", "Balance", "¿Es Admin?", "Abono" };
 			DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 			for(User user: users) {
 				String[] row = { user.getId(), user.getPassword(), Double.toString(user.getBalance()), Boolean.toString(user.isAdmin()), "0" };

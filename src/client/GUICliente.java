@@ -121,6 +121,7 @@ public class GUICliente extends JFrame {
 		
 		btnCommit = new JButton("Commit");
 		andminTab.add(btnCommit);
+		btnCommit.addActionListener(controller);
 		
 		JPanel logsTab = new JPanel();
 		tabbedPane.addTab("Logs", null, logsTab, null);
