@@ -7,8 +7,8 @@ public class Product extends Resource {
 
     private int total;
     private double cost;
-    Product(int total,double cost, String id)
-    {
+    
+    public Product(int total, double cost, String id) {
         super(id);
         this.total = total;
         this.cost = cost;
@@ -18,4 +18,23 @@ public class Product extends Resource {
     public void doOperations(Transaction transaction) {
         System.out.println("--- NOT IMPLEMENTED");
     }
+    
+    public String getId() {
+    	return this.id;
+    }
+
+	public double getCost() {
+		return cost;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+
+	@Override
+	public String toString() {
+		return "Product [total=" + total + ", cost=" + cost + "]";
+	}
+    
+    
 }

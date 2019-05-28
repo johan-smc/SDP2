@@ -10,7 +10,7 @@ public abstract class Resource implements Serializable {
 
     private Map<String, Transaction> transactions;
     private Set<String> activeTransactions;
-    private String id;
+    protected String id;
 
     public Resource() {
         this.transactions = new HashMap<>();

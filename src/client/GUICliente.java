@@ -1,67 +1,36 @@
 package client;
 
-import intefaces.IUsers;
-import server.Server;
+import java.awt.BorderLayout;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.border.EmptyBorder;
+
+import controllers.ClienteController;
 import serverUsers.User;
 
-import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.nio.charset.StandardCharsets;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+public class GUICliente extends JFrame {
 
-import java.awt.List;
-import java.awt.ScrollPane;
-
-public class GUICliente {
-
+	private static final long serialVersionUID = 1L;
 	private JFrame frame;
-	private JTextField txtUsername;
-	private JTextField txtPassword;
-	private IUsers serverUsers;
-	private User user;
+	private JPanel contentPane;
 	private JTable tableProducts;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args){
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					GUICliente window = new GUICliente();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	private  void conectToServers() {
-		Registry registry = null;
-
-		try {
-			registry = LocateRegistry.getRegistry("localhost", 9999);
-			this.serverUsers = (IUsers) registry.lookup(Server.NAME_SERVICE);
-		} catch (RemoteException | NotBoundException e) {
-			e.printStackTrace();
-		}
-	}
+	private JButton btnComprar;
+	private JLabel lblBalance;
+	
+	private ClienteController controller;
 
 	/**
 	 * Create the application.
 	 */
-	public GUICliente() {
-		conectToServers();
+	public GUICliente(User user) {
+		this.controller = new ClienteController(this, user);
 		initialize();
 	}
 
@@ -69,18 +38,27 @@ public class GUICliente {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 450, 300);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(contentPane);
+		
+		
 		frame = new JFrame();
+		frame.setSize(270, 160);
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
-
 		login();
-		principalFrame();
 	}
 	private void login() {
+		
 		JPanel principalPanel = new JPanel();
 		principalPanel.setBounds(0, 0, 450, 278);
-		frame.getContentPane().add(principalPanel);
+		// frame.getContentPane().add(principalPanel);
+		contentPane.add(principalPanel);
 		principalPanel.setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -97,98 +75,39 @@ public class GUICliente {
 		
 		tableProducts = new JTable();
 		scrollPanePrducts.setViewportView(tableProducts);
-		Object columnNames[] = { "Column One", "Column Two", "Column Three" };
-		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-		Object rowData[] = { "Row1-Column1", "Row1-Column2", "Row1-Column3" };
-		model.addRow(rowData);
-		tableProducts.setModel(model);
+		this.controller.populateTable();
 		
-		JButton btnComprar = new JButton("Comprar");
+		btnComprar = new JButton("Comprar");
 		btnComprar.setBounds(294, 97, 117, 29);
 		userTab.add(btnComprar);
 		
-		JPanel loginPanel = new JPanel();
-		loginPanel.setBounds(0, 0, 450, 278);
-		frame.getContentPane().add(loginPanel);
-		loginPanel.setLayout(null);
+		JLabel lblBalancetitle = new JLabel("Balance:");
+		lblBalancetitle.setBounds(304, 138, 61, 16);
+		userTab.add(lblBalancetitle);
 		
-		txtUsername = new JTextField();
-		txtUsername.setBounds(146, 92, 130, 26);
-		loginPanel.add(txtUsername);
-		txtUsername.setColumns(10);
+		lblBalance = new JLabel("");
+		lblBalance.setBounds(304, 166, 61, 16);
+		this.controller.setAccountBalance();
 		
-		txtPassword = new JTextField();
-		txtPassword.setBounds(146, 140, 130, 26);
-		loginPanel.add(txtPassword);
-		txtPassword.setColumns(10);
-		
-		JLabel lblUsername = new JLabel("Username");
-		lblUsername.setBounds(146, 75, 101, 16);
-		loginPanel.add(lblUsername);
-		
-		JLabel lblPassword = new JLabel("Password");
-		lblPassword.setBounds(146, 122, 85, 16);
-		loginPanel.add(lblPassword);
-		
-		JButton btnLogin = new JButton("Login");
-		btnLogin.setBounds(146, 178, 117, 29);
-		loginPanel.add(btnLogin);
-		
-
-		btnLogin.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				try {
-					user = serverUsers.login(
-							txtUsername.getText(),
-							getHash(txtPassword.getText())
-					);
-					if( user != null )
-					{
-						if( user.isEmptyPassword() ){
-							changePassword();
-						}
-						loginPanel.setVisible(false);
-						//principalFrame();
-					} else{
-						JOptionPane.showMessageDialog(null,  "Login Incorrecto", "Error", JOptionPane.WARNING_MESSAGE);
-					}
-
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+		userTab.add(lblBalance);
+		btnComprar.addActionListener(controller);
+				
+	}
+	
+	public JButton getBtnComprar() {
+		return this.btnComprar;
+	}
+	
+	public JTable getTableProducts() {
+		return this.tableProducts;
 	}
 
-	private void principalFrame() {
+	public JLabel getLblBalance() {
+		return lblBalance;
 	}
 
-	private void changePassword() {
-		String password = JOptionPane.showInputDialog("Escribe la nueva contraseña");
-		password = getHash(password);
-		try {
-			this.user = this.serverUsers.changePassword(this.user.getId(), password);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-
+	public void setLblBalance(JLabel lblBalance) {
+		this.lblBalance = lblBalance;
 	}
-
-	private String getHash(String password) {
-		if( password.equals("") )
-		{
-			return password;
-		}
-		MessageDigest digest = null;
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-			return digest.digest(password.getBytes(StandardCharsets.UTF_8)).toString();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+	
 }
