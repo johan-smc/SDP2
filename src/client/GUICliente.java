@@ -1,67 +1,42 @@
 package client;
 
-import intefaces.IUsers;
-import server.Server;
+import java.awt.BorderLayout;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.border.EmptyBorder;
+
+import controllers.ClienteController;
 import serverUsers.User;
+import javax.swing.JTextPane;
 
-import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.nio.charset.StandardCharsets;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+public class GUICliente extends JFrame {
 
-import java.awt.List;
-import java.awt.ScrollPane;
-
-public class GUICliente {
-
+	private static final long serialVersionUID = 1L;
 	private JFrame frame;
-	private JTextField txtUsername;
-	private JTextField txtPassword;
-	private IUsers serverUsers;
-	private User user;
+	private JPanel contentPane;
 	private JTable tableProducts;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args){
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					GUICliente window = new GUICliente();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	private  void conectToServers() {
-		Registry registry = null;
-
-		try {
-			registry = LocateRegistry.getRegistry("localhost", 9999);
-			this.serverUsers = (IUsers) registry.lookup(Server.NAME_SERVICE);
-		} catch (RemoteException | NotBoundException e) {
-			e.printStackTrace();
-		}
-	}
+	private JButton btnComprar;
+	private JLabel lblBalance;
+	
+	private ClienteController controller;
+	private JTable tableUser;
+	private JButton btnCommit;
+	private JButton btnActualizarInventario;
+	private JTextPane txtLogs;
+	private JButton btnActualizarLogs;
 
 	/**
 	 * Create the application.
 	 */
-	public GUICliente() {
-		conectToServers();
+	public GUICliente(User user) {
+		this.controller = new ClienteController(this, user);
 		initialize();
 	}
 
@@ -69,53 +44,31 @@ public class GUICliente {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 656, 521);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(contentPane);
+		
+		
 		frame = new JFrame();
+		frame.setSize(270, 160);
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
-
-		login();
-		//principalFrame();
+		catalogView();
 	}
-	private void login() {
-		Object columnNames[] = { "Column One", "Column Two", "Column Three" };
-		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-		Object rowData[] = { "Row1-Column1", "Row1-Column2", "Row1-Column3" };
-		model.addRow(rowData);
+	private void catalogView() {
 		
-		JPanel loginPanel = new JPanel();
-		loginPanel.setBounds(0, 0, 450, 278);
-		frame.getContentPane().add(loginPanel);
-		loginPanel.setLayout(null);
-		
-		txtUsername = new JTextField();
-		txtUsername.setBounds(146, 92, 130, 26);
-		loginPanel.add(txtUsername);
-		txtUsername.setColumns(10);
-		
-		txtPassword = new JTextField();
-		txtPassword.setBounds(146, 140, 130, 26);
-		loginPanel.add(txtPassword);
-		txtPassword.setColumns(10);
-		
-		JLabel lblUsername = new JLabel("Username");
-		lblUsername.setBounds(146, 75, 101, 16);
-		loginPanel.add(lblUsername);
-		
-		JLabel lblPassword = new JLabel("Password");
-		lblPassword.setBounds(146, 122, 85, 16);
-		loginPanel.add(lblPassword);
-		
-		JButton btnLogin = new JButton("Login");
-		btnLogin.setBounds(146, 178, 117, 29);
-		loginPanel.add(btnLogin);
 		JPanel principalPanel = new JPanel();
 		principalPanel.setBounds(0, 0, 450, 278);
-		frame.getContentPane().add(principalPanel);
+		// frame.getContentPane().add(principalPanel);
+		contentPane.add(principalPanel);
 		principalPanel.setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 0, 450, 278);
+		tabbedPane.setBounds(0, 0, 615, 446);
 		principalPanel.add(tabbedPane);
 		
 		JPanel userTab = new JPanel();
@@ -123,72 +76,112 @@ public class GUICliente {
 		userTab.setLayout(null);
 		
 		JScrollPane scrollPanePrducts = new JScrollPane();
-		scrollPanePrducts.setBounds(6, 6, 254, 220);
+		scrollPanePrducts.setBounds(6, 6, 567, 246);
 		userTab.add(scrollPanePrducts);
 		
 		tableProducts = new JTable();
 		scrollPanePrducts.setViewportView(tableProducts);
-		tableProducts.setModel(model);
+		this.controller.populateTable();
 		
-		JButton btnComprar = new JButton("Comprar");
-		btnComprar.setBounds(294, 97, 117, 29);
+		btnComprar = new JButton("Comprar");
+		btnComprar.setBounds(156, 289, 117, 29);
 		userTab.add(btnComprar);
+		btnComprar.addActionListener(controller);
 		
-
-		btnLogin.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				try {
-					user = serverUsers.login(
-							txtUsername.getText(),
-							getHash(txtPassword.getText())
-					);
-					if( user != null )
-					{
-						if( user.isEmptyPassword() ){
-							changePassword();
-						}
-						loginPanel.setVisible(false);
-						//principalFrame();
-					} else{
-						JOptionPane.showMessageDialog(null,  "Login Incorrecto", "Error", JOptionPane.WARNING_MESSAGE);
-					}
-
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-	}
-
-	private void principalFrame() {
-	}
-
-	private void changePassword() {
-		String password = JOptionPane.showInputDialog("Escribe la nueva contraseña");
-		password = getHash(password);
-		try {
-			this.user = this.serverUsers.changePassword(this.user.getId(), password);
-		} catch (RemoteException e) {
-			e.printStackTrace();
+		JLabel lblBalancetitle = new JLabel("Balance:");
+		lblBalancetitle.setBounds(35, 339, 61, 16);
+		userTab.add(lblBalancetitle);
+		
+		lblBalance = new JLabel("");
+		lblBalance.setBounds(93, 339, 61, 16);
+		this.controller.setAccountBalance();
+		
+		userTab.add(lblBalance);
+		
+		JPanel andminTab = new JPanel();
+		if(this.controller.getUser().isAdmin()) {
+			tabbedPane.addTab("Admin", null, andminTab, null);
 		}
-
+		userTab.setLayout(null);
+		
+		btnActualizarInventario = new JButton("Actualizar Inventario");
+		btnActualizarInventario.setBounds(298, 289, 189, 29);
+		if(this.controller.getUser().isAdmin()) {
+			userTab.add(btnActualizarInventario);
+		}
+		btnActualizarInventario.addActionListener(controller);
+		
+		JScrollPane scrollPaneUsers = new JScrollPane();
+		scrollPaneUsers.setBounds(6, 6, 254, 220);
+		andminTab.add(scrollPaneUsers);
+		
+		tableUser = new JTable();
+		scrollPaneUsers.setViewportView(tableUser);	
+		this.controller.populateUserTable();
+		
+		btnCommit = new JButton("Commit");
+		andminTab.add(btnCommit);
+		
+		JPanel logsTab = new JPanel();
+		tabbedPane.addTab("Logs", null, logsTab, null);
+		logsTab.setLayout(null);
+		
+		btnActualizarLogs = new JButton("Actualizar");
+		btnActualizarLogs.setBounds(242, 334, 117, 29);
+		logsTab.add(btnActualizarLogs);
+		
+		txtLogs = new JTextPane();
+		txtLogs.setBounds(0, 0, 594, 305);
+		logsTab.add(txtLogs);
+		btnActualizarLogs.addActionListener(controller);
+		
+		
+	}
+	
+	public JButton getBtnComprar() {
+		return this.btnComprar;
+	}
+	
+	public JTable getTableProducts() {
+		return this.tableProducts;
 	}
 
-	private String getHash(String password) {
-		if( password.equals("") )
-		{
-			return password;
-		}
-		MessageDigest digest = null;
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-			return digest.digest(password.getBytes(StandardCharsets.UTF_8)).toString();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public JLabel getLblBalance() {
+		return lblBalance;
 	}
+
+	public void setLblBalance(JLabel lblBalance) {
+		this.lblBalance = lblBalance;
+	}
+
+	public JButton getBtnCommit() {
+		return btnCommit;
+	}
+
+	public JTable getTableUser() {
+		return tableUser;
+	}
+
+	public JButton getBtnActualizarInventario() {
+		return btnActualizarInventario;
+	}
+
+	public JTextPane getTxtLogs() {
+		return txtLogs;
+	}
+
+	public void setTxtLogs(JTextPane txtLogs) {
+		this.txtLogs = txtLogs;
+	}
+
+	public JButton getBtnActualizarLogs() {
+		return btnActualizarLogs;
+	}
+
+	public void setBtnActualizarLogs(JButton btnActualizarLogs) {
+		this.btnActualizarLogs = btnActualizarLogs;
+	}
+	
+	
+	
 }

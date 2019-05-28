@@ -9,6 +9,10 @@ public class User extends Resource {
     private double balance;
     private boolean isAdmin;
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
     @Override
     public void doOperations(Transaction transaction) {
         // TODO

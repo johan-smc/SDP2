@@ -6,10 +6,10 @@ import server.Resource;
 
 public class Product extends Resource {
 
-    private int total;
+	private int total;
     private double cost;
-    Product(int total,double cost, String id)
-    {
+    
+    public Product(int total, double cost, String id) {
         super(id);
         this.total = total;
         this.cost = cost;
@@ -61,4 +61,32 @@ public class Product extends Resource {
     public void setCost(double cost) {
         this.cost = cost;
     }
+    
+    public String getId() {
+    	return this.id;
+    }
+
+	public double getCost() {
+		return cost;
+	}
+	
+	public int getTotal() {
+		return total;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+	
+
+	public void setTotal(int total) {
+		this.total = total;
+	}
+
+	@Override
+	public String toString() {
+		return "Product [total=" + total + ", cost=" + cost +  "ID="+ this.id + "]";
+	}
+    
+    
 }
