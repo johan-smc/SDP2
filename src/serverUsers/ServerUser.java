@@ -130,4 +130,9 @@ public class ServerUser extends Server implements IUsers {
     public ServerReference getReference() {
         return this.participant.getMyServer();
     }
+
+    @Override
+    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
+        return this.coordinator.getDecision(transaction);
+    }
 }

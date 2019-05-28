@@ -13,6 +13,14 @@ public class User extends Resource {
         return isAdmin;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
     @Override
     public void doOperations(Transaction transaction) {
         // TODO

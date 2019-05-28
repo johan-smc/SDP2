@@ -41,6 +41,11 @@ public class ServerCatalog extends Server implements ICatalog {
         return this.participant.getMyServer();
     }
 
+    @Override
+    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
+        return this.coordinator.getDecision(transaction);
+    }
+
 
     public static void main(String[] args) throws RemoteException {
         int port = Integer.valueOf(args[0]);

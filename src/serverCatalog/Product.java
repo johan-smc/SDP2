@@ -41,10 +41,10 @@ public class Product extends Resource {
         }
     }
 
-    @Override
+    /*@Override
     public String toString() {
         return "id: "+ this.id+ " cost: " + this.cost + " total: " +this.total;
-    }
+    }*/
 
     public int getTotal() {
         return total;
@@ -66,22 +66,10 @@ public class Product extends Resource {
     	return this.id;
     }
 
-	public double getCost() {
-		return cost;
-	}
-	
-	public int getTotal() {
-		return total;
-	}
 
-	public void setCost(double cost) {
-		this.cost = cost;
-	}
 	
 
-	public void setTotal(int total) {
-		this.total = total;
-	}
+
 
 	@Override
 	public String toString() {
