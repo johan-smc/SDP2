@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,7 +40,31 @@ public class ClienteController implements ActionListener{
 		if(e.getSource() == this.clientGui.getBtnComprar()) {
 			this.enviarCompra();
 		}
+		if(e.getSource() == this.clientGui.getBtnActualizarInventario()) {
+			this.actualizarInventario();
+		}
 		
+		if(e.getSource() == this.clientGui.getBtnActualizarLogs()) {
+			this.actualizarLogs();
+		}
+		
+	}
+	
+	private void actualizarLogs() {
+		String newStr = "Some NEw";
+		String oldLogs = this.clientGui.getTxtLogs().getText();
+		this.clientGui.getTxtLogs().setText(oldLogs + '\n' + newStr);
+	}
+	
+	private void actualizarInventario() {
+		//Transaction transaction = new Transaction();
+		Product[] prods = this.getShoppingCarContent(this.clientGui.getTableProducts().getModel());
+		for(int i = 0; i < this.clientGui.getTableProducts().getModel().getRowCount(); ++i) {
+			int toAdd = Integer.parseInt((String) this.clientGui.getTableProducts().getModel().getValueAt(i, 2));
+			prods[i].setTotal(toAdd);
+			//transaction.putOperation(new Operation(Operation.TYPE.WRITE, 4, prods[i].getId(), serverCatalog.getRe));
+		}
+		this.populateTable(new ArrayList<Product>(Arrays.asList(prods)));
 	}
 	
 	private void enviarCompra() {		
@@ -61,10 +86,21 @@ public class ClienteController implements ActionListener{
 	
 	public void populateTable() {
 		ArrayList<Product> catalog = this.getProductsFromServer();
-		String columnNames[] = { "Nombre Producto", "Costo", "Cantidad" };
+		String columnNames[] = { "Nombre Producto", "Costo", "Inventario", "Cantidad" };
 		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 		for(Product product: catalog) {
-			String[] rowValues = {product.getId(), Double.toString(product.getCost()), "0" };
+			String[] rowValues = {product.getId(), Double.toString(product.getCost()), Integer.toString(product.getTotal()),  "0" };
+			model.addRow(rowValues);
+		}
+		this.clientGui.getTableProducts().setModel(model);
+		
+	}
+	
+	private void populateTable(ArrayList<Product> catalog) {
+		String columnNames[] = { "Nombre Producto", "Costo", "Inventario", "Cantidad" };
+		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+		for(Product product: catalog) {
+			String[] rowValues = {product.getId(), Double.toString(product.getCost()), Integer.toString(product.getTotal()),  "0" };
 			model.addRow(rowValues);
 		}
 		this.clientGui.getTableProducts().setModel(model);
@@ -111,6 +147,37 @@ public class ClienteController implements ActionListener{
 			products[i] = newProd;
 		}
 		return products;
+	}
+	
+	public void populateUserTable() {
+		if(this.user.isAdmin()) {
+			ArrayList<User> users = this.getUsersFromServer();
+			String columnNames[] = { "Usuario", "Contraseña","¿Es Admin?", "Balance", "Abono" };
+			DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+			for(User user: users) {
+				String[] row = { user.getId(), user.getPassword(), Double.toString(user.getBalance()), Boolean.toString(user.isAdmin()), "0" };
+				model.addRow(row);
+			}
+			this.clientGui.getTableUser().setModel(model);
+		}
+	}
+	
+	private ArrayList<User> getUsersFromServer() {
+		ArrayList<User> users = new ArrayList<User>();
+		Map<String, Resource> usersList = null;
+		try {
+			usersList = this.serverUser.getUsers();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		for(Map.Entry<String, Resource> entry: usersList.entrySet()) {
+			users.add((User) entry.getValue());
+		}
+		return users;
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 }

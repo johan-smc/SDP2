@@ -41,7 +41,11 @@ public class Transaction {
         this.desition = DESITION.IN_PROGRESS;
         this.type = Operation.TYPE.READ;
     }
-    private String generateId(){
+    public Transaction() {
+		// TODO Auto-generated constructor stub
+	}
+
+	private String generateId(){
         return null;
     }
 

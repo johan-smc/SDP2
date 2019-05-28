@@ -4,7 +4,9 @@ import protocol2pc.Transaction;
 import server.Resource;
 
 public class User extends Resource {
-    private String password;
+
+	private static final long serialVersionUID = 1L;
+	private String password;
     private double balance;
     private boolean isAdmin;
 
@@ -29,8 +31,7 @@ public class User extends Resource {
         this.balance = balance;
         this.isAdmin = isAdmin;
     }
-    public boolean isEmptyPassword()
-    {
+    public boolean isEmptyPassword() {
         return this.password.equals("");
     }
 
@@ -44,5 +45,25 @@ public class User extends Resource {
 
 	public double getBalance() {
 		return balance;
+	}
+
+	public boolean isAdmin() {
+		return isAdmin;
+	}
+
+	public void setAdmin(boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
+
+	public void setBalance(double balance) {
+		this.balance = balance;
+	}
+	
+	public String getId() {
+		return this.id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }
