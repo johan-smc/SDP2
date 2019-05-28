@@ -1,5 +1,6 @@
 package serverUsers;
 
+import protocol2pc.Operation;
 import protocol2pc.Transaction;
 import server.Resource;
 
@@ -11,7 +12,12 @@ public class User extends Resource {
     @Override
     public void doOperations(Transaction transaction) {
         // TODO
-        System.out.println("--- NOT IMPLEMENTED");
+        for (Operation o:
+             transaction.getOperations()) {
+            if( o.getResource().equals(this.id) && o.getType().equals(Operation.TYPE.WRITE)){
+                balance += (Double)o.getValue();
+            }
+        }
     }
 
     boolean login(String password){
@@ -36,5 +42,22 @@ public class User extends Resource {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "id: "+ this.id+ " password: " + this.password + " balance: " +this.balance + " isAdmin: " + this.isAdmin ;
+    }
+
+    @Override
+    protected boolean validate(Transaction transaction) {
+        double temporalBalance = balance;
+        for (Operation o:
+                transaction.getOperations()) {
+            if( o.getResource().equals(this.id) && o.getType().equals(Operation.TYPE.WRITE)){
+                temporalBalance+= (double)o.getValue();
+            }
+        }
+        return temporalBalance >= 0.0;
     }
 }

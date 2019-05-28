@@ -75,37 +75,13 @@ public class GUICliente {
 		frame.getContentPane().setLayout(null);
 
 		login();
-		principalFrame();
+		//principalFrame();
 	}
 	private void login() {
-		JPanel principalPanel = new JPanel();
-		principalPanel.setBounds(0, 0, 450, 278);
-		frame.getContentPane().add(principalPanel);
-		principalPanel.setLayout(null);
-		
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 0, 450, 278);
-		principalPanel.add(tabbedPane);
-		
-		JPanel userTab = new JPanel();
-		tabbedPane.addTab("User", null, userTab, null);
-		userTab.setLayout(null);
-		
-		JScrollPane scrollPanePrducts = new JScrollPane();
-		scrollPanePrducts.setBounds(6, 6, 254, 220);
-		userTab.add(scrollPanePrducts);
-		
-		tableProducts = new JTable();
-		scrollPanePrducts.setViewportView(tableProducts);
 		Object columnNames[] = { "Column One", "Column Two", "Column Three" };
 		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 		Object rowData[] = { "Row1-Column1", "Row1-Column2", "Row1-Column3" };
 		model.addRow(rowData);
-		tableProducts.setModel(model);
-		
-		JButton btnComprar = new JButton("Comprar");
-		btnComprar.setBounds(294, 97, 117, 29);
-		userTab.add(btnComprar);
 		
 		JPanel loginPanel = new JPanel();
 		loginPanel.setBounds(0, 0, 450, 278);
@@ -133,6 +109,30 @@ public class GUICliente {
 		JButton btnLogin = new JButton("Login");
 		btnLogin.setBounds(146, 178, 117, 29);
 		loginPanel.add(btnLogin);
+		JPanel principalPanel = new JPanel();
+		principalPanel.setBounds(0, 0, 450, 278);
+		frame.getContentPane().add(principalPanel);
+		principalPanel.setLayout(null);
+		
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBounds(0, 0, 450, 278);
+		principalPanel.add(tabbedPane);
+		
+		JPanel userTab = new JPanel();
+		tabbedPane.addTab("User", null, userTab, null);
+		userTab.setLayout(null);
+		
+		JScrollPane scrollPanePrducts = new JScrollPane();
+		scrollPanePrducts.setBounds(6, 6, 254, 220);
+		userTab.add(scrollPanePrducts);
+		
+		tableProducts = new JTable();
+		scrollPanePrducts.setViewportView(tableProducts);
+		tableProducts.setModel(model);
+		
+		JButton btnComprar = new JButton("Comprar");
+		btnComprar.setBounds(294, 97, 117, 29);
+		userTab.add(btnComprar);
 		
 
 		btnLogin.addActionListener(new ActionListener() {

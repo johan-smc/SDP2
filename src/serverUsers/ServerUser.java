@@ -10,6 +10,8 @@ import server.ServerReference;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -24,7 +26,14 @@ public class ServerUser extends Server implements IUsers {
     public static void main(String[] args) throws RemoteException {
         int port = Integer.valueOf(args[0]);
         System.err.println("Port: " + port);
-        String ip = "ip";
+        InetAddress inetAddress = null;
+        try {
+            inetAddress = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        assert inetAddress != null;
+        String ip = inetAddress.getHostAddress();
         System.err.println("ip: " + ip);
         ServerReference coordinator = new ServerReference(
             ip,port, Coordinator.NAME_SERVICE
@@ -115,5 +124,10 @@ public class ServerUser extends Server implements IUsers {
     @Override
     public String openTransaction(Transaction transaction) throws RemoteException {
         return this.coordinator.openTransaction(transaction);
+    }
+
+    @Override
+    public ServerReference getReference() {
+        return this.participant.getMyServer();
     }
 }

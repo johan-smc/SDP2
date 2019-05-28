@@ -10,7 +10,7 @@ public abstract class Resource implements Serializable {
 
     private Map<String, Transaction> transactions;
     private Set<String> activeTransactions;
-    private String id;
+    protected String id;
 
     public Resource() {
         this.transactions = new HashMap<>();
@@ -36,19 +36,28 @@ public abstract class Resource implements Serializable {
     public  synchronized boolean canCommit(String transactionId)
     {
         Iterator<String> it = activeTransactions.iterator();
-        if( !it.hasNext() ||
-                (this.transactions.get(it.next()).getType().equals( Operation.TYPE.READ) && this.transactions.get(transactionId).getType().equals(Operation.TYPE.READ) ) )
+        boolean canCom = !it.hasNext() ||
+                    (this.transactions.get(it.next()).getType().equals( Operation.TYPE.READ) &&
+                        this.transactions.get(transactionId).getType().equals(Operation.TYPE.READ)
+                        && this.validate(this.transactions.get(it.next()))
+                    );
+
+        if(canCom)
         {
+
             this.activeTransactions.add(transactionId);
             return true;
         }
         return false;
     }
 
+    protected abstract boolean validate(Transaction transaction);
 
 
     public synchronized void doCommit(String transactionId) {
+        System.out.println("Resource " + this.getId()+" do commit");
         if( this.transactions.containsKey(transactionId) && this.activeTransactions.contains(transactionId) ) {
+            System.out.println("I'm going to do the operations");
             doOperations(this.transactions.get(transactionId));
             this.transactions.remove(transactionId);
             this.activeTransactions.remove(transactionId);
@@ -62,6 +71,7 @@ public abstract class Resource implements Serializable {
 
 
     public synchronized void doAbort(String transactionId) {
+        System.out.println("Resource " + this.getId()+" do abort");
         if( this.transactions.containsKey(transactionId) && this.activeTransactions.contains(transactionId) ) {
 
             this.transactions.remove(transactionId);

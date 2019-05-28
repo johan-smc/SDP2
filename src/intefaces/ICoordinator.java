@@ -11,7 +11,8 @@ public interface ICoordinator extends Remote {
 
 
     void haveCommited(Transaction transaction, ServerReference participant) throws RemoteException;
-    Transaction.DESITION getDecision(Transaction transaction) throws RemoteException;
+    Transaction.DESISION getDecision(Transaction transaction) throws RemoteException;
     String openTransaction(Transaction transaction) throws RemoteException;
+    String hi() throws RemoteException;
 
 }

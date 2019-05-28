@@ -3,11 +3,18 @@ package protocol2pc;
 import server.Resource;
 import server.ServerReference;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class Transaction {
+public class Transaction implements Serializable {
+
+    public Transaction() {
+        operations = new ArrayList<>();
+        this.desition = DESISION.IN_PROGRESS;
+        this.type = Operation.TYPE.READ;
+    }
 
     public void putOperation(Operation operation) {
         this.operations.add(operation);
@@ -25,7 +32,7 @@ public class Transaction {
         this.type = type;
     }
 
-    public enum DESITION{
+    public enum DESISION{
         COMMIT,
         ABORT,
         IN_PROGRESS,
@@ -33,13 +40,11 @@ public class Transaction {
     }
     private String id;
     private List<Operation> operations;
-    private DESITION desition;
+    private DESISION desition;
     private Operation.TYPE type;
     public Transaction(String transactionId){
-        id = generateId();
-        operations = new ArrayList<>();
-        this.desition = DESITION.IN_PROGRESS;
-        this.type = Operation.TYPE.READ;
+        this();
+        id = transactionId;
     }
     private String generateId(){
         return null;
@@ -61,11 +66,11 @@ public class Transaction {
         this.operations = operations;
     }
 
-    public DESITION getDesition() {
+    public DESISION getDesition() {
         return desition;
     }
 
-    public void setDesition(DESITION desition) {
+    public void setDesition(DESISION desition) {
         this.desition = desition;
     }
 

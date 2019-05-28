@@ -3,21 +3,27 @@ package protocol2pc;
 import server.Resource;
 import server.ServerReference;
 
-public class Operation {
+import java.io.Serializable;
+
+public class Operation implements Serializable {
 
     public enum TYPE{
         READ,
         WRITE;
 
-        enum WRITE{
-            ADD,
-            SUBTRACT
-        }
+
     }
     private TYPE type;
     private Object value;
     private String resource;
     private ServerReference server;
+
+    public Operation(TYPE type, Object value, String resource, ServerReference server) {
+        this.type = type;
+        this.value = value;
+        this.resource = resource;
+        this.server = server;
+    }
 
     public TYPE getType() {
         return type;

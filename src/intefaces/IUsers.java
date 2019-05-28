@@ -2,6 +2,7 @@ package intefaces;
 
 import protocol2pc.Transaction;
 import server.Resource;
+import server.ServerReference;
 import serverUsers.User;
 
 import java.rmi.Remote;
@@ -13,4 +14,6 @@ public interface IUsers extends Remote {
     public User login(String id, String password) throws RemoteException;
     public User changePassword(String id, String password) throws RemoteException;
     String openTransaction(Transaction transaction) throws RemoteException;
+
+    ServerReference getReference() throws RemoteException;
 }

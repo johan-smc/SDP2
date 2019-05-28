@@ -9,12 +9,13 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Participant implements IParticipant {
+public class Participant extends UnicastRemoteObject implements IParticipant  {
 
     public static final String NAME_SERVICE = "participant";
     private Map<String, Resource> resources;
@@ -25,7 +26,9 @@ public class Participant implements IParticipant {
         return myServer;
     }
 
-    public Participant(Map<String, Resource> resources, ServerReference myServer){
+    public Participant(Map<String, Resource> resources, ServerReference myServer) throws RemoteException {
+        super();
+
         this.resources = resources;
         this.myServer = myServer;
         this.transactionsReferences = new HashMap<>();
@@ -45,7 +48,7 @@ public class Participant implements IParticipant {
                     return false;
                 }
                 resource.doOperation(transaction.getId(), operation);
-                resourceSet.add(resource.toString());
+                resourceSet.add(resource.getId());
             }
         }
         for (String rId:
@@ -61,11 +64,15 @@ public class Participant implements IParticipant {
 
     @Override
     public void doCommit(Transaction transaction) throws RemoteException {
+
+        System.out.println("Participant Do commit");
         for ( Operation operation:
                 transaction.getOperations()) {
+
             if( operation.getServer().equals(myServer) )
             {
                 Resource resource =this.resources.get(operation.getResource());
+                System.out.println("I'm going to call commit to: " + resource);
                 if( resource != null )
                 {
                     resource.doCommit(transaction.getId());
@@ -73,27 +80,34 @@ public class Participant implements IParticipant {
 
             }
         }
+        System.out.println("Inform to coordinator");
         this.transactionsReferences.get(transaction.getId()).haveCommited(transaction, this.myServer);
-
+        System.out.println("End Participant Do commit");
     }
 
     @Override
     public void doAbort(Transaction transaction) throws RemoteException {
+        System.out.println("Participant Do Abort");
         for ( Operation operation:
                 transaction.getOperations()) {
             if (operation.getServer().equals(myServer)) {
                 Resource resource = this.resources.get(operation.getResource());
+                System.out.println("I'm going to call abort to: " + resource);
                 if (resource != null) {
                     resource.doAbort(transaction.getId());
                 }
 
             }
         }
+        this.transactionsReferences.get(transaction.getId()).hi();
+        System.out.println("Inform to coordinator");
         this.transactionsReferences.get(transaction.getId()).haveCommited(transaction, this.myServer);
+        System.out.println("Participant Do Commit");
     }
 
     @Override
     public boolean join(Transaction transaction, ServerReference server) throws RemoteException {
+        System.out.println("Join from " + server.getIp() + ":" +server.getPort());
         if( this.transactionsReferences.containsKey(transaction.getId()) )
         {
             return false;

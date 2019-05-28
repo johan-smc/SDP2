@@ -1,6 +1,8 @@
 package server;
 
-public class ServerReference {
+import java.io.Serializable;
+
+public class ServerReference implements Serializable, Comparable {
     private String ip;
     private int port;
     private String serverNameRMI;
@@ -33,5 +35,22 @@ public class ServerReference {
         this.ip = ip;
         this.port = port;
         this.serverNameRMI = serverNameRMI;
+    }
+
+    private String getUnion(){
+        return this.ip+this.port+this.serverNameRMI;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+
+        ServerReference other = (ServerReference)o;
+        return this.getUnion().compareTo(other.getUnion());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        ServerReference other = (ServerReference)obj;
+        return this.ip.equals(other.ip) && this.port == other.port && this.serverNameRMI.equals(other.serverNameRMI);
     }
 }
