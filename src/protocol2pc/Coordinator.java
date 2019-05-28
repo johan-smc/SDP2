@@ -41,10 +41,10 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
     }
 
     @Override
-    public Transaction.DESISION getDecision(Transaction transaction) throws RemoteException {
+    public Transaction.DECISION getDecision(Transaction transaction) throws RemoteException {
         if( !this.transactions.containsKey(transaction.getId()) )
         {
-            return Transaction.DESISION.NOT_EXIST;
+            return Transaction.DECISION.NOT_EXIST;
         }
         return this.transactions.get(transaction.getId()).getDesition();
     }
@@ -77,9 +77,18 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
     private void sendCanCommitAllParticipants(Transaction transaction) {
 
         boolean commit = true;
+        boolean isPurchase = transaction.getTypeTransaction().equals(Transaction.TYPE_TRANSACTION.PURCHASE);
+        Operation balanceTemporal = null;
+        if( isPurchase ) {
+            balanceTemporal = removeBalance(transaction);
+            verifyBalance(balanceTemporal);
+
+        }
+
         Map<ServerReference, Boolean> server = this.transactionParticipants.get(transaction.getId());
         System.out.println("Size: " +server.size());
         for (Map.Entry<ServerReference, Boolean> entry : server.entrySet()) {
+
             boolean answer  = false;
             try {
                 System.out.println("Enviando a " + this.participants.get(entry.getKey()));
@@ -88,20 +97,66 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            if( !answer )
+            if( !answer && !isPurchase )
             {
                 this.doAbort(transaction);
                 commit = false;
                 break;
             }
             entry.setValue(answer);
+            if( !answer  )
+            {
+                removeServerReference(transaction, entry.getKey());
+            }
+        }
+        if( isPurchase )
+        {
+            boolean answer = true;
+            balanceTemporal = updateBalance(balanceTemporal, transaction);
+            try {
+                System.out.println("Enviando a " + this.participants.get(balanceTemporal.getServer()));
+                answer = this.participants.get(balanceTemporal.getServer()).canCommit(transaction);
+                System.out.println("Answer: "+ answer);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            if( !answer )
+            {
+                this.doAbort(transaction);
+                commit = false;
+            }
         }
         if( commit)
         {
             this.doCommit(transaction);
         }
         System.out.println("The decision is: " +commit);
-        // TODO inform client
+
+
+    }
+
+    private Operation updateBalance(Operation balanceTemporal, Transaction transaction) {
+        // TODO
+        return null;
+    }
+
+    private Operation removeBalance(Transaction transaction) {
+        // TODO
+        return null;
+    }
+
+    private void verifyBalance(Operation transaction) {
+        // TODO
+    }
+
+    private void removeServerReference(Transaction transaction, ServerReference key) {
+        for (Operation o: transaction.getOperations()
+             ) {
+            if( o.getServer().equals(key) )
+            {
+                transactions.remove(o);
+            }
+        }
     }
 
     private void doAbort(Transaction transaction) {
@@ -121,6 +176,7 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
                 e.printStackTrace();
             }
         }
+        transaction.setDesition(Transaction.DECISION.ABORT);
     }
     private void doCommit(Transaction transaction) {
         // TODO maybe has error the code
@@ -142,7 +198,9 @@ public class Coordinator extends UnicastRemoteObject implements ICoordinator {
                 e.printStackTrace();
             }
         }
+        transaction.setDesition(Transaction.DECISION.COMMIT);
         System.out.println("Terminate Commit");
+
     }
 
     private void joinAllParticipants(Transaction transaction) {

@@ -24,6 +24,9 @@ public class Product extends Resource {
                 temporalTotal+= (int)o.getValue();
             }
         }
+
+        System.out.println("Validating transaction: " + transaction.getId());
+        System.out.println(temporalTotal);
         return temporalTotal >= 0;
     }
 

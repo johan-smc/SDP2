@@ -10,10 +10,26 @@ import java.util.List;
 
 public class Transaction implements Serializable {
 
+
+    private String id;
+    private List<Operation> operations;
+    private DECISION desition;
+    private Operation.TYPE type;
+    private TYPE_TRANSACTION typeTransaction;
     public Transaction() {
         operations = new ArrayList<>();
-        this.desition = DESISION.IN_PROGRESS;
+        this.desition = DECISION.IN_PROGRESS;
         this.type = Operation.TYPE.READ;
+        this.typeTransaction = TYPE_TRANSACTION.NORMAL;
+
+    }
+    public Transaction(String transactionId){
+        this();
+        id = transactionId;
+    }
+    public Transaction(String transactionId, TYPE_TRANSACTION typeTransaction){
+        this(transactionId);
+        this.typeTransaction = typeTransaction;
     }
 
     public void putOperation(Operation operation) {
@@ -32,20 +48,26 @@ public class Transaction implements Serializable {
         this.type = type;
     }
 
-    public enum DESISION{
+    public TYPE_TRANSACTION getTypeTransaction() {
+        return typeTransaction;
+    }
+
+    public void setTypeTransaction(TYPE_TRANSACTION typeTransaction) {
+        this.typeTransaction = typeTransaction;
+    }
+
+    public enum TYPE_TRANSACTION{
+        NORMAL,
+        PURCHASE
+    }
+
+    public enum DECISION{
         COMMIT,
         ABORT,
         IN_PROGRESS,
         NOT_EXIST
     }
-    private String id;
-    private List<Operation> operations;
-    private DESISION desition;
-    private Operation.TYPE type;
-    public Transaction(String transactionId){
-        this();
-        id = transactionId;
-    }
+
     private String generateId(){
         return null;
     }
@@ -66,11 +88,11 @@ public class Transaction implements Serializable {
         this.operations = operations;
     }
 
-    public DESISION getDesition() {
+    public DECISION getDesition() {
         return desition;
     }
 
-    public void setDesition(DESISION desition) {
+    public void setDesition(DECISION desition) {
         this.desition = desition;
     }
 

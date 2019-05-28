@@ -35,12 +35,14 @@ public abstract class Resource implements Serializable {
 
     public  synchronized boolean canCommit(String transactionId)
     {
+        System.out.println("Can commit? ");
         Iterator<String> it = activeTransactions.iterator();
         boolean canCom = !it.hasNext() ||
                     (this.transactions.get(it.next()).getType().equals( Operation.TYPE.READ) &&
                         this.transactions.get(transactionId).getType().equals(Operation.TYPE.READ)
-                        && this.validate(this.transactions.get(it.next()))
+
                     );
+        canCom &= this.validate(this.transactions.get(transactionId));
 
         if(canCom)
         {
